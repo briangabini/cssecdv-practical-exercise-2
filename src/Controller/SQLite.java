@@ -4,11 +4,8 @@ import Model.History;
 import Model.Logs;
 import Model.Product;
 import Model.User;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+
+import java.sql.*;
 import java.util.ArrayList;
 
 public class SQLite {
@@ -180,31 +177,29 @@ public class SQLite {
     }
     
     public void addUser(String username, String password) {
-        String sql = "INSERT INTO users(username,password) VALUES('" + username + "','" + password + "')";
-        
+
+        String hashedPw = PasswordUtil.hash(password);
+
+        String sql = "INSERT INTO users(username,password) VALUES(?,?)";
         try (Connection conn = DriverManager.getConnection(driverURL);
-            Statement stmt = conn.createStatement()){
-            stmt.execute(sql);
-            
-//      PREPARED STATEMENT EXAMPLE
-//      String sql = "INSERT INTO users(username,password) VALUES(?,?)";
-//      PreparedStatement pstmt = conn.prepareStatement(sql)) {
-//      pstmt.setString(1, username);
-//      pstmt.setString(2, password);
-//      pstmt.executeUpdate();
+             var pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, username);
+            pstmt.setString(2, password);
+            pstmt.executeUpdate();
         } catch (Exception ex) {
-            System.out.print(ex);
+            System.err.println("Error adding user: " + ex.getMessage());
         }
     }
-    
-    
+
+
     public ArrayList<History> getHistory(){
         String sql = "SELECT id, username, name, stock, timestamp FROM history";
         ArrayList<History> histories = new ArrayList<History>();
         
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql)){
+            ResultSet rs = stmt.executeQuery(sql)) {
             
             while (rs.next()) {
                 histories.add(new History(rs.getInt("id"),

@@ -1,6 +1,8 @@
 
 package View;
 
+import javax.swing.*;
+
 public class Register extends javax.swing.JPanel {
 
     public Frame frame;
@@ -14,10 +16,10 @@ public class Register extends javax.swing.JPanel {
     private void initComponents() {
 
         registerBtn = new javax.swing.JButton();
-        passwordFld = new javax.swing.JTextField();
+        passwordFld = new javax.swing.JPasswordField();
         usernameFld = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
-        confpassFld = new javax.swing.JTextField();
+        confpassFld = new javax.swing.JPasswordField();
         backBtn = new javax.swing.JButton();
 
         registerBtn.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
@@ -97,8 +99,54 @@ public class Register extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void registerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerBtnActionPerformed
-        frame.registerAction(usernameFld.getText(), passwordFld.getText(), confpassFld.getText());
-        frame.loginNav();
+        String user = usernameFld.getText().trim();
+        char[] pass = passwordFld.getPassword();
+        char[] conf = confpassFld.getPassword();
+
+        // Perform validations for added security
+        if (user.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Username may not be blank.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String pw = new String(pass);
+        if (pw.length() < 8) {
+            JOptionPane.showMessageDialog(this,
+                    "Password must be at least 8 characters long.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (!pw.equals(new String(conf))) {
+            JOptionPane.showMessageDialog(this,
+                    "Passwords do not match.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (frame.main.sqlite.isUsernameTaken(user)) {
+            JOptionPane.showMessageDialog(this,
+                    "That username is already registered.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            frame.registerAction(user, pw, new String(conf));
+            frame.loginNav();
+        } catch (IllegalArgumentException dup) {
+            JOptionPane.showMessageDialog(this,
+                    dup.getMessage(),
+                    "Registration Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+
     }//GEN-LAST:event_registerBtnActionPerformed
 
     private void backBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backBtnActionPerformed
@@ -108,9 +156,9 @@ public class Register extends javax.swing.JPanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton backBtn;
-    private javax.swing.JTextField confpassFld;
+    private javax.swing.JPasswordField confpassFld;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JTextField passwordFld;
+    private javax.swing.JPasswordField passwordFld;
     private javax.swing.JButton registerBtn;
     private javax.swing.JTextField usernameFld;
     // End of variables declaration//GEN-END:variables

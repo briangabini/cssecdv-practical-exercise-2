@@ -185,7 +185,7 @@ public class SQLite {
              var pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, username);
-            pstmt.setString(2, password);
+            pstmt.setString(2, hashedPw);
             pstmt.executeUpdate();
         } catch (Exception ex) {
             System.err.println("Error adding user: " + ex.getMessage());
@@ -311,6 +311,21 @@ public class SQLite {
             System.out.print(ex);
         }
         return product;
+    }
+
+    public boolean isUsernameTaken(String username) {
+        String sql = "SELECT 1 FROM users WHERE username = ? LIMIT 1";
+        try (var conn = DriverManager.getConnection(driverURL);
+             var pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, username);
+            try (var rs = pstmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return true;
+        }
     }
 
     // New methods

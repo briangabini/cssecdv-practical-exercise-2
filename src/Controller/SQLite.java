@@ -312,4 +312,26 @@ public class SQLite {
         }
         return product;
     }
+
+    // New methods
+    public boolean authenticate(String username, String plainPassword) {
+        String sql = "SELECT password FROM users WHERE username = ?";
+
+        try (Connection conn = DriverManager.getConnection(driverURL);
+             var pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, username);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (!rs.next()) {
+                    return false;
+                }
+                String storedHash = rs.getString("password");
+                return PasswordUtil.verify(plainPassword, storedHash);
+            }
+
+        } catch (SQLException ex) {
+            System.err.println("Authentication error: " + ex.getMessage());
+            return false;
+        }
+    }
 }

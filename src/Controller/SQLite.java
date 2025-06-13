@@ -275,7 +275,8 @@ public class SQLite {
     }
     
     public void addUser(String username, String password, int role) {
-        String sql = "INSERT INTO users(username,password,role) VALUES('" + username + "','" + password + "','" + role + "')";
+        String hashedPw = PasswordUtil.hash(password);
+        String sql = "INSERT INTO users(username,password,role) VALUES('" + username + "','" + hashedPw + "','" + role + "')";
         
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()){
@@ -348,5 +349,21 @@ public class SQLite {
             System.err.println("Authentication error: " + ex.getMessage());
             return false;
         }
+    }
+
+    public int getUserRole(String username) {
+        String sql = "SELECT role FROM users WHERE username = ? LIMIT 1";
+        try (var conn = DriverManager.getConnection(driverURL);
+             var pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            try (var rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("role");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 }

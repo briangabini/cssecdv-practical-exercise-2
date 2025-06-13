@@ -110,6 +110,9 @@ public class Login extends javax.swing.JPanel {
         usernameFld.setText("");
         passwordFld.setText("");
 
+        int role = frame.main.sqlite.getUserRole(user);
+        frame.configureNavForRole(role);
+
         frame.mainNav();
     }//GEN-LAST:event_loginBtnActionPerformed
 

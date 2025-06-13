@@ -8,8 +8,30 @@ import javax.swing.WindowConstants;
 
 public class Frame extends javax.swing.JFrame {
 
+    // Role constants
+    public static final int ROLE_DISABLED = 1;
+    public static final int ROLE_CLIENT   = 2;
+    public static final int ROLE_STAFF    = 3;
+    public static final int ROLE_MANAGER  = 4;
+    public static final int ROLE_ADMIN    = 5;
+
     public Frame() {
         initComponents();
+    }
+
+    public void configureNavForRole(int role) {
+        boolean isDisabled = (role == ROLE_DISABLED);
+        adminBtn.setVisible(   role == ROLE_ADMIN);
+        managerBtn.setVisible( role == ROLE_MANAGER);
+        staffBtn.setVisible(   role == ROLE_STAFF);
+        clientBtn.setVisible(  role == ROLE_CLIENT);
+
+        if (isDisabled) {
+            adminBtn.setVisible(false);
+            managerBtn.setVisible(false);
+            staffBtn.setVisible(false);
+            clientBtn.setVisible(false);
+        }
     }
 
     @SuppressWarnings("unchecked")

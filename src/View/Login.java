@@ -107,6 +107,10 @@ public class Login extends javax.swing.JPanel {
             return;
         }
 
+        // reset fields
+        usernameFld.setText("");
+        passwordFld.setText("");
+
         int role = frame.main.sqlite.getUserRole(user);
         frame.configureNavForRole(role);
         frame.mainNav();

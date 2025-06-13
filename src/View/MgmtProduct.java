@@ -22,10 +22,11 @@ public class MgmtProduct extends javax.swing.JPanel {
     public SQLite sqlite;
     public DefaultTableModel tableModel;
     
-    public MgmtProduct(SQLite sqlite) {
+    public MgmtProduct(SQLite sqlite, int role) {
         initComponents();
         this.sqlite = sqlite;
         tableModel = (DefaultTableModel)table.getModel();
+        configureButtons(role);
         table.getTableHeader().setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 14));
 
 //        UNCOMMENT TO DISABLE BUTTONS
@@ -211,6 +212,25 @@ public class MgmtProduct extends javax.swing.JPanel {
             System.out.println(priceFld.getText());
         }
     }//GEN-LAST:event_addBtnActionPerformed
+
+    private void configureButtons(int role) {
+        final int ROLE_DISABLED  = 1;
+        final int ROLE_CLIENT    = 2;
+        final int ROLE_STAFF     = 3;
+        final int ROLE_MANAGER   = 4;
+        final int ROLE_ADMIN     = 5;
+
+        // PURCHASE only for clients
+        purchaseBtn.setVisible(role == ROLE_CLIENT);
+
+        // ADD/EDIT for staff and above
+        addBtn    .setVisible(role >= ROLE_STAFF);
+        editBtn   .setVisible(role >= ROLE_STAFF);
+
+        // DELETE only for admin
+        deleteBtn .setVisible(role == ROLE_ADMIN);
+    }
+
 
     private void editBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editBtnActionPerformed
         if(table.getSelectedRow() >= 0){

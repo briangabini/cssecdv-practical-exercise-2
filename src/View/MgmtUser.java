@@ -24,12 +24,28 @@ public class MgmtUser extends javax.swing.JPanel {
 
     public SQLite sqlite;
     public DefaultTableModel tableModel;
+
+    public void configureButtons(int role) {
+        // your role constants (should match Frame)
+        final int ROLE_DISABLED  = 1;
+        final int ROLE_CLIENT    = 2;
+        final int ROLE_STAFF     = 3;
+        final int ROLE_MANAGER   = 4;
+        final int ROLE_ADMIN     = 5;
+
+        // Only admins may do any of these actions:
+        editRoleBtn.setVisible(role == ROLE_ADMIN);
+        deleteBtn  .setVisible(role == ROLE_ADMIN);
+        lockBtn    .setVisible(role == ROLE_ADMIN);
+        chgpassBtn .setVisible(role == ROLE_ADMIN);
+    }
     
-    public MgmtUser(SQLite sqlite) {
+    public MgmtUser(SQLite sqlite, int role) {
         initComponents();
         this.sqlite = sqlite;
         tableModel = (DefaultTableModel)table.getModel();
         table.getTableHeader().setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 14));
+        configureButtons(role);
         
 //        UNCOMMENT TO DISABLE BUTTONS
 //        editBtn.setVisible(false);

@@ -106,6 +106,10 @@ public class Login extends javax.swing.JPanel {
             return;
         }
 
+        // reset fields for security
+        usernameFld.setText("");
+        passwordFld.setText("");
+
         frame.mainNav();
     }//GEN-LAST:event_loginBtnActionPerformed
 

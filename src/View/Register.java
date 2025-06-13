@@ -139,6 +139,12 @@ public class Register extends javax.swing.JPanel {
 
         try {
             frame.registerAction(user, pw, new String(conf));
+
+            // reset fields for security
+            usernameFld.setText("");
+            passwordFld.setText("");
+            confpassFld.setText("");
+
             frame.loginNav();
         } catch (IllegalArgumentException dup) {
             JOptionPane.showMessageDialog(this,

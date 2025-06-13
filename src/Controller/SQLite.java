@@ -9,6 +9,8 @@ import java.sql.*;
 import java.util.ArrayList;
 
 public class SQLite {
+
+    private static final int MAX_FAILED_ATTEMPTS = 3;
     
     public int DEBUG_MODE = 0;
     String driverURL = "jdbc:sqlite:" + "database.db";
@@ -76,15 +78,16 @@ public class SQLite {
             System.out.print(ex);
         }
     }
-     
+
     public void createUserTable() {
         String sql = "CREATE TABLE IF NOT EXISTS users (\n"
-            + " id INTEGER PRIMARY KEY AUTOINCREMENT,\n"
-            + " username TEXT NOT NULL UNIQUE,\n"
-            + " password TEXT NOT NULL,\n"
-            + " role INTEGER DEFAULT 2,\n"
-            + " locked INTEGER DEFAULT 0\n"
-            + ");";
+                + "  id              INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+                + "  username        TEXT    NOT NULL UNIQUE,\n"
+                + "  password        TEXT    NOT NULL,\n"
+                + "  role            INTEGER DEFAULT 2,\n"
+                + "  locked          INTEGER DEFAULT 0,\n"
+                + "  failed_attempts INTEGER DEFAULT 0\n"
+                + ");";
 
         try (Connection conn = DriverManager.getConnection(driverURL);
             Statement stmt = conn.createStatement()) {
@@ -94,7 +97,7 @@ public class SQLite {
             System.out.print(ex);
         }
     }
-    
+
     public void dropHistoryTable() {
         String sql = "DROP TABLE IF EXISTS history;";
 
@@ -286,7 +289,7 @@ public class SQLite {
             System.out.print(ex);
         }
     }
-    
+
     public void removeUser(String username) {
         String sql = "DELETE FROM users WHERE username='" + username + "';";
 
@@ -331,25 +334,45 @@ public class SQLite {
 
     // New methods
     public boolean authenticate(String username, String plainPassword) {
-        String sql = "SELECT password FROM users WHERE username = ?";
-
-        try (Connection conn = DriverManager.getConnection(driverURL);
-             var pstmt = conn.prepareStatement(sql)) {
+        String selectSql = "SELECT password, locked, failed_attempts FROM users WHERE username = ? LIMIT 1";
+        try (var conn = DriverManager.getConnection(driverURL);
+             var pstmt = conn.prepareStatement(selectSql)) {
 
             pstmt.setString(1, username);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (!rs.next()) {
-                    return false;
-                }
-                String storedHash = rs.getString("password");
-                return PasswordUtil.verify(plainPassword, storedHash);
-            }
+            try (var rs = pstmt.executeQuery()) {
+                if (!rs.next()) return false;
+                if (rs.getInt("locked") == 1) return false;
 
+                String storedHash = rs.getString("password");
+                boolean ok = PasswordUtil.verify(plainPassword, storedHash);
+
+                // Now run the lockout update on the *same* conn:
+                if (ok) {
+                    try (var upd = conn.prepareStatement(
+                            "UPDATE users SET failed_attempts = 0 WHERE username = ?")) {
+                        upd.setString(1, username);
+                        upd.executeUpdate();
+                    }
+                } else {
+                    try (var upd = conn.prepareStatement(
+                            "UPDATE users\n"
+                                    + "   SET failed_attempts = failed_attempts + 1,\n"
+                                    + "       locked = CASE WHEN failed_attempts + 1 >= ? THEN 1 ELSE locked END\n"
+                                    + " WHERE username = ?")) {
+                        upd.setInt(1, MAX_FAILED_ATTEMPTS);
+                        upd.setString(2, username);
+                        upd.executeUpdate();
+                    }
+                }
+
+                return ok;
+            }
         } catch (SQLException ex) {
-            System.err.println("Authentication error: " + ex.getMessage());
+            ex.printStackTrace();
             return false;
         }
     }
+
 
     public int getUserRole(String username) {
         String sql = "SELECT role FROM users WHERE username = ? LIMIT 1";
@@ -365,5 +388,21 @@ public class SQLite {
             e.printStackTrace();
         }
         return -1;
+    }
+
+    public boolean isAccountLocked(String username) {
+        String sql = "SELECT locked FROM users WHERE username = ? LIMIT 1";
+        try (var conn = DriverManager.getConnection(driverURL);
+             var pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            try (var rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("locked") == 1;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

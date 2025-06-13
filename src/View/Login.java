@@ -84,37 +84,34 @@ public class Login extends javax.swing.JPanel {
                 .addContainerGap(126, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
-    private void loginBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginBtnActionPerformed
+
+    private void loginBtnActionPerformed(java.awt.event.ActionEvent evt) {
+
         String user = usernameFld.getText().trim();
         char[] pass = passwordFld.getPassword();
 
-        if (user.isEmpty() || pass.length == 0) {
-            JOptionPane.showMessageDialog(this,
-                    "Please enter both a username and a password.",
-                    "Validation Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // now call into your controller
         boolean ok = frame.main.sqlite.authenticate(user, new String(pass));
         if (!ok) {
-            JOptionPane.showMessageDialog(this,
-                    "Invalid username or password.",
-                    "Login Failed",
-                    JOptionPane.ERROR_MESSAGE);
+            if (frame.main.sqlite.isAccountLocked(user)) {
+                JOptionPane.showMessageDialog(this,
+                        "Your account has been locked due to too many failed attempts.\n"
+                                + "Please contact an administrator.",
+                        "Account Locked",
+                        JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Invalid username or password.",
+                        "Login Failed",
+                        JOptionPane.ERROR_MESSAGE);
+            }
             return;
         }
-
-        // reset fields for security
-        usernameFld.setText("");
-        passwordFld.setText("");
 
         int role = frame.main.sqlite.getUserRole(user);
         frame.configureNavForRole(role);
-
         frame.mainNav();
-    }//GEN-LAST:event_loginBtnActionPerformed
+    }
+//GEN-LAST:event_loginBtnActionPerformed
 
     private void registerBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_registerBtnActionPerformed
         frame.registerNav();

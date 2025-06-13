@@ -15,6 +15,17 @@ public class Frame extends javax.swing.JFrame {
     public static final int ROLE_MANAGER  = 4;
     public static final int ROLE_ADMIN    = 5;
 
+    private int currentRole = ROLE_DISABLED;
+
+    public void setCurrentRole(int role) {
+        this.currentRole = role;
+        configureNavForRole(role);
+    }
+
+    public int getCurrentRole() {
+        return currentRole;
+    }
+
     public Frame() {
         initComponents();
     }
@@ -246,10 +257,10 @@ public class Frame extends javax.swing.JFrame {
         loginPnl.frame = this;
         registerPnl.frame = this;
         
-        adminHomePnl.init(main.sqlite);
-        clientHomePnl.init(main.sqlite);
-        managerHomePnl.init(main.sqlite);
-        staffHomePnl.init(main.sqlite);
+        adminHomePnl.init(main.sqlite, 5);
+        clientHomePnl.init(main.sqlite, 2);
+        managerHomePnl.init(main.sqlite, 4);
+        staffHomePnl.init(main.sqlite, 3);
         
         Container.setLayout(frameView);
         Container.add(loginPnl, "loginPnl");
@@ -282,6 +293,31 @@ public class Frame extends javax.swing.JFrame {
         main.sqlite.addUser(username, password);
 
     }
+
+    public void showHomeForRole() {
+        // 1) Switch the outer container to the home panel
+        frameView.show(Container, "homePnl");
+
+        // 2) Then show the proper inner card based on currentRole
+        switch (currentRole) {
+            case ROLE_ADMIN:
+                contentView.show(Content, "adminHomePnl");
+                break;
+            case ROLE_MANAGER:
+                contentView.show(Content, "managerHomePnl");
+                break;
+            case ROLE_STAFF:
+                contentView.show(Content, "staffHomePnl");
+                break;
+            case ROLE_CLIENT:
+                contentView.show(Content, "clientHomePnl");
+                break;
+            default:
+                // fallback or disabled
+                contentView.show(Content, "adminHomePnl");
+        }
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel Container;
     private javax.swing.JPanel Content;

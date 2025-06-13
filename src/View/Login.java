@@ -2,6 +2,7 @@
 package View;
 
 import javax.swing.*;
+import java.util.Arrays;
 
 public class Login extends javax.swing.JPanel {
 
@@ -86,7 +87,6 @@ public class Login extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void loginBtnActionPerformed(java.awt.event.ActionEvent evt) {
-
         String user = usernameFld.getText().trim();
         char[] pass = passwordFld.getPassword();
 
@@ -104,16 +104,19 @@ public class Login extends javax.swing.JPanel {
                         "Login Failed",
                         JOptionPane.ERROR_MESSAGE);
             }
+
+            Arrays.fill(pass, '\0');
             return;
         }
 
-        // reset fields
+        Arrays.fill(pass, '\0');
         usernameFld.setText("");
         passwordFld.setText("");
 
         int role = frame.main.sqlite.getUserRole(user);
+        frame.setCurrentRole(role);
         frame.configureNavForRole(role);
-        frame.mainNav();
+        frame.showHomeForRole();
     }
 //GEN-LAST:event_loginBtnActionPerformed
 

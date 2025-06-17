@@ -147,19 +147,29 @@ public class SQLite {
     }
 
     public void addUser(String username, String password) {
-        validateString(username, "username");
+
+        String userNorm = username.trim().toLowerCase();
+
+        validateString(userNorm, "username");
         validateString(password, "password");
+
+        if (isUsernameTaken(userNorm)) {
+            throw new IllegalArgumentException("Username \"" + userNorm + "\" is already taken");
+        }
+
         String hashedPw = PasswordUtil.hash(password);
         String sql = "INSERT INTO users(username,password) VALUES(?,?)";
         try (Connection conn = DriverManager.getConnection(driverURL);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, username);
+
+            pstmt.setString(1, userNorm);
             pstmt.setString(2, hashedPw);
             pstmt.executeUpdate();
         } catch (SQLException ex) {
             System.err.println("Error adding user: " + ex.getMessage());
         }
     }
+
 
     public void addUser(String username, String password, int role) {
         validateString(username, "username");
